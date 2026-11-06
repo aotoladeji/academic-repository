@@ -6,15 +6,21 @@ import RepositorySearch from './components/RepositorySearch.jsx';
 import StaffPortal from './components/StaffPortal.jsx';
 import AdminApp from './admin/AdminApp.jsx';
 
-/** Tiny hash router (no extra package): "#/admin" opens the administrator portal. */
-function useHash() {
-  const [hash, setHash] = useState(window.location.hash);
+/** Tiny path router (no extra package): "/admin" opens the administrator portal. */
+function usePath() {
+  const [path, setPath] = useState(window.location.pathname);
   useEffect(() => {
-    const on = () => setHash(window.location.hash);
-    window.addEventListener('hashchange', on);
-    return () => window.removeEventListener('hashchange', on);
+    const on = () => setPath(window.location.pathname);
+    window.addEventListener('popstate', on);
+    return () => window.removeEventListener('popstate', on);
   }, []);
-  return hash;
+  return path;
+}
+
+/** Navigate without a full page reload; used by in-app links (e.g. "back to public site"). */
+export function navigate(path) {
+  window.history.pushState({}, '', path);
+  window.dispatchEvent(new PopStateEvent('popstate'));
 }
 
 export default function App() {
@@ -26,8 +32,8 @@ export default function App() {
 }
 
 function Router() {
-  const hash = useHash();
-  return hash.startsWith('#/admin') ? <AdminApp /> : <PublicSite />;
+  const path = usePath();
+  return path.startsWith('/admin') ? <AdminApp /> : <PublicSite />;
 }
 
 const TABS = [

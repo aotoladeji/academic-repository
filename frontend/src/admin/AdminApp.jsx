@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { FileText, Inbox, Loader2, LogIn, LogOut, Mail, SlidersHorizontal, Users } from 'lucide-react';
 import { errorMessage } from '../lib/api.js';
 import { useAuth } from '../lib/auth.jsx';
+import { navigate } from '../App.jsx';
 import Logo from '../components/Logo.jsx';
 import AdminFormManager from '../components/AdminFormManager.jsx';
 import StaffManager from './StaffManager.jsx';
@@ -58,7 +59,7 @@ function AdminLogin() {
         <button className="btn-primary w-full" disabled={state.loading}>
           {state.loading ? <Loader2 size={16} className="animate-spin" /> : <LogIn size={16} />} Sign in
         </button>
-        <a href="#/" className="block text-center text-sm text-brand-700 hover:underline">← Back to the public site</a>
+        <a href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }} className="block text-center text-sm text-brand-700 hover:underline">← Back to the public site</a>
       </form>
     </div>
   );
@@ -79,7 +80,7 @@ function Dashboard() {
           </div>
           <div className="flex items-center gap-3 text-sm">
             <span className="hidden text-brand-ink/70 md:inline">{admin.email}</span>
-            <a href="#/" className="hidden font-medium text-brand-700 hover:underline sm:inline">Public site</a>
+            <a href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }} className="hidden font-medium text-brand-700 hover:underline sm:inline">Public site</a>
             <button className="btn-ghost" onClick={() => logout('admin')} aria-label="Sign out">
               <LogOut size={14} /> <span className="hidden sm:inline">Sign out</span>
             </button>
