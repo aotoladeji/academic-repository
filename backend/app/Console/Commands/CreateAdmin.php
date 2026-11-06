@@ -7,7 +7,7 @@ use Illuminate\Console\Command;
 
 class CreateAdmin extends Command
 {
-    protected $signature = 'admin:create {email : Admin login email} {password : Admin password (min 8 chars)}';
+    protected $signature = 'admin:create {username : Admin login username} {password : Admin password (min 8 chars)}';
     protected $description = 'Create (or reset the password of) the repository administrator';
 
     public function handle(): int
@@ -18,7 +18,7 @@ class CreateAdmin extends Command
             return self::FAILURE;
         }
 
-        $user = User::firstOrNew(['email' => $this->argument('email')]);
+        $user = User::firstOrNew(['email' => $this->argument('username')]);
         $user->name = $user->name ?: 'Administrator';
         $user->password = $password;   // User model's "hashed" cast hashes it
         $user->save();

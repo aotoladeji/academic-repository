@@ -31,8 +31,8 @@ export function AuthProvider({ children }) {
     setStaff(data.staff);
   }, []);
 
-  const adminLogin = useCallback(async (email, password) => {
-    const { data } = await api.post('/admin/login', { email, password });
+  const adminLogin = useCallback(async (username, password) => {
+    const { data } = await api.post('/admin/login', { username, password });
     tokens.set('admin', data.token);
     setAdmin(data.admin);
   }, []);

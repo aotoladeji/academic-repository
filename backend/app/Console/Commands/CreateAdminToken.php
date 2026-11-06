@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 
 class CreateAdminToken extends Command
 {
-    protected $signature = 'admin:token {email=admin@example.com : Admin account email}';
+    protected $signature = 'admin:token {email=admin : Admin account username}';
     protected $description = 'Create (or reuse) an admin user and print a Sanctum API token for the form-builder UI';
 
     public function handle(): int

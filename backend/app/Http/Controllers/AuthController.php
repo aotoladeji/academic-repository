@@ -36,17 +36,17 @@ class AuthController extends Controller
         ]);
     }
 
-    /** POST /admin/login  { email, password } */
+    /** POST /admin/login  { username, password } */
     public function adminLogin(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'email'    => ['required', 'email'],
+            'username' => ['required', 'string', 'max:255'],
             'password' => ['required', 'string'],
         ]);
 
-        $user = User::where('email', $data['email'])->first();
+        $user = User::whereRaw('LOWER(email) = ?', [strtolower($data['username'])])->first();
         if (!$user || !Hash::check($data['password'], $user->password)) {
-            throw ValidationException::withMessages(['email' => ['Email or password is incorrect.']]);
+            throw ValidationException::withMessages(['username' => ['Username or password is incorrect.']]);
         }
 
         return response()->json([

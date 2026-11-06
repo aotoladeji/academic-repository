@@ -91,9 +91,9 @@ php artisan db:seed --class=StaffSeeder
 ```
 Sample accounts PF1001–PF1004 now have the password `Welcome@123`.
 
-**3.3 Create the administrator** (choose your own email and password, at least 8 characters)
+**3.3 Create the administrator** (choose your own username and password, at least 8 characters)
 ```
-php artisan admin:create admin@example.com MyStrongPass123
+php artisan admin:create admin password
 ```
 
 **3.4 Clear Laravel's cache and start the server**
@@ -147,7 +147,7 @@ A university mail server works the same way: ask your IT office for the SMTP hos
 3. Sign out, then click **Request an account** and send a request.
 
 **Administrator – `http://localhost:5173/#/admin`** (type this address; it is not linked anywhere)
-1. Sign in with the email and password from step 3.3.
+1. Sign in with the username and password from step 3.3.
 2. **Staff**: set the *Default password*, then **Add staff**, or **Import Excel / CSV**. Click **View** on a person to see full details, assign a new password, edit, deactivate or delete.
 3. **Account requests**: **Approve** creates the account with the default password and emails the staff member; **Reject** closes it.
 4. **Publications**: search, **Delete**, or **Add publication** for any staff member.
@@ -169,7 +169,7 @@ Row 1 must be headings. Click **Download template** in the import window to see 
 
 | What you see | Fix |
 |---|---|
-| Admin page says "Email or password is incorrect" | Run the `admin:create` command again; it also resets the password. |
+| Admin page says "Username or password is incorrect" | Run the `admin:create` command again; it also resets the password. |
 | `Base table or view not found: account_requests` | You haven't run `php artisan migrate` yet. |
 | `Class "App\Http\Middleware\EnsureAdmin" not found` | The two middleware files are missing from `app/Http/Middleware/`. |
 | Staff sign-in says incorrect but PF/password are right | Run `php artisan db:seed --class=StaffSeeder` (sample staff), or use **Staff → View → Assign password**. |

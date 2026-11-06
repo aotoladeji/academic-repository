@@ -26,7 +26,7 @@ export default function AdminApp() {
 
 function AdminLogin() {
   const { adminLogin } = useAuth();
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [state, setState] = useState({ loading: false, error: '' });
 
@@ -34,7 +34,7 @@ function AdminLogin() {
     e.preventDefault();
     setState({ loading: true, error: '' });
     try {
-      await adminLogin(email.trim(), password);
+      await adminLogin(username.trim(), password);
     } catch (err) {
       setState({ loading: false, error: errorMessage(err, 'Sign-in failed.') });
     }
@@ -49,8 +49,8 @@ function AdminLogin() {
         </div>
         {state.error && <p role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-800">{state.error}</p>}
         <div>
-          <label htmlFor="ad-email" className="label">Email</label>
-          <input id="ad-email" type="email" className="input" required autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <label htmlFor="ad-username" className="label">Username</label>
+          <input id="ad-username" type="text" className="input" required autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value)} />
         </div>
         <div>
           <label htmlFor="ad-pw" className="label">Password</label>
