@@ -4,7 +4,7 @@ import api, { errorMessage } from '../lib/api.js';
 import DynamicFormBuilder from './DynamicFormBuilder.jsx';
 
 const TYPES = [
-  ['text', 'Short text'], ['textarea', 'Long text'], ['select', 'Dropdown'], ['date', 'Date'],
+  ['text', 'Short text'], ['textarea', 'Long text'], ['select', 'Dropdown'], ['multi_select', 'Multiple choice (tick all that apply)'], ['date', 'Date'],
   ['url', 'Link'], ['number', 'Number'], ['dynamic_list', 'Repeatable list'],
 ];
 const EMPTY = { label: '', type: 'text', is_required: false, is_active: true, optionsText: '' };
@@ -38,10 +38,10 @@ export default function AdminFormManager() {
   const save = async (e) => {
     e.preventDefault();
     setError('');
-    const options = draft.type === 'select'
+        const options = ['select', 'multi_select'].includes(draft.type)
       ? draft.optionsText.split('\n').map((s) => s.trim()).filter(Boolean)
       : null;
-    if (draft.type === 'select' && !options.length) return setError('Add at least one dropdown option.');
+    if (options && !options.length) return setError('Add at least one option.');
 
     const payload = { label: draft.label.trim(), type: draft.type, is_required: draft.is_required, is_active: draft.is_active, options };
     setSaving(true);
@@ -123,7 +123,7 @@ export default function AdminFormManager() {
           </select>
         </div>
 
-        {draft.type === 'select' && (
+        {['select', 'multi_select'].includes(draft.type) && (
           <div>
             <label className="label" htmlFor="f-opts">Dropdown options (one per line)</label>
             <textarea id="f-opts" rows={4} className="input" value={draft.optionsText}

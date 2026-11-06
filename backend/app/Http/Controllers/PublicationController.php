@@ -120,7 +120,7 @@ class PublicationController extends Controller
         return response()->json(null, 204);
     }
 
-    private function customRules($fields): array
+       private function customRules($fields): array
     {
         $rules = [];
         foreach ($fields as $field) {
@@ -130,6 +130,7 @@ class PublicationController extends Controller
             $rules[$key] = match ($field->type) {
                 'textarea'     => [...$base, 'string', 'max:5000'],
                 'select'       => [...$base, Rule::in($field->options ?? [])],
+                'multi_select' => [...$base, 'array', 'max:50'],
                 'date'         => [...$base, 'date'],
                 'url'          => [...$base, 'url', 'max:2048'],
                 'number'       => [...$base, 'numeric'],
@@ -139,6 +140,9 @@ class PublicationController extends Controller
 
             if ($field->type === 'dynamic_list') {
                 $rules["{$key}.*"] = ['nullable', 'string', 'max:500'];
+            }
+            if ($field->type === 'multi_select') {
+                $rules["{$key}.*"] = ['string', Rule::in($field->options ?? [])];
             }
         }
         return $rules;

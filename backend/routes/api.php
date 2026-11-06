@@ -10,6 +10,7 @@ use App\Http\Controllers\StaffController;
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureStaff;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\EvidenceController;
 
 /* ---------------- PUBLIC (no login) ---------------- */
 Route::get('/form-fields', [FormFieldController::class, 'index']);
@@ -33,6 +34,7 @@ Route::middleware(['auth:sanctum', EnsureStaff::class])->group(function () {
 Route::prefix('admin')->middleware(['auth:sanctum', EnsureAdmin::class])->group(function () {
     Route::get('/me', [AuthController::class, 'adminMe']);
     Route::post('/logout', [AuthController::class, 'logout']);
+    
 
     // Form builder
     Route::get('/form-fields', [FormFieldController::class, 'adminIndex']);
@@ -58,6 +60,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', EnsureAdmin::class])->group(
     // Publications
     Route::post('/publications', [PublicationController::class, 'store']);
     Route::delete('/publications/{publication}', [PublicationController::class, 'destroy']);
+    Route::get('/evidence', [EvidenceController::class, 'index']);
 
     // Email to staff
     Route::get('/messages', [MessageController::class, 'index']);

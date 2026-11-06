@@ -1,5 +1,5 @@
 import * as yup from 'yup';
-import { useFieldArray } from 'react-hook-form';
+import { Controller, useFieldArray } from 'react-hook-form';
 import { Plus, X } from 'lucide-react';
 
 /* ---------- helpers shared with the parent form ---------- */
@@ -20,6 +20,11 @@ export function buildCustomSchema(fields) {
       case 'select':
         s = yup.string().oneOf(['', ...(f.options ?? [])], 'Choose one of the listed options');
         break;
+      case 'multi_select':
+        s = yup.array().of(yup.string());
+        if (req) s = s.min(1, req);
+        shape[f.field_key] = s;
+        return;
       case 'dynamic_list':
         s = yup.array().of(yup.object({ value: yup.string() }));
         if (req) s = s.test('min1', req, (arr) => (arr ?? []).some((i) => i.value?.trim()));
@@ -34,7 +39,10 @@ export function buildCustomSchema(fields) {
 }
 
 export function buildCustomDefaults(fields) {
-  return Object.fromEntries(fields.map((f) => [f.field_key, f.type === 'dynamic_list' ? [{ value: '' }] : '']));
+  return Object.fromEntries(fields.map((f) => [
+    f.field_key,
+    f.type === 'dynamic_list' ? [{ value: '' }] : f.type === 'multi_select' ? [] : '',
+  ]));
 }
 
 /** Turn form state into the API shape ({ dynamic_list: ['a','b'] }, blanks removed). */
@@ -43,6 +51,7 @@ export function serializeCustom(fields, values = {}) {
   fields.forEach((f) => {
     const v = values[f.field_key];
     if (f.type === 'dynamic_list') out[f.field_key] = (v ?? []).map((i) => i.value?.trim()).filter(Boolean);
+    else if (f.type === 'multi_select') out[f.field_key] = Array.isArray(v) ? v : [];
     else if (v !== '' && v != null && !Number.isNaN(v)) out[f.field_key] = v;
   });
   return out;
@@ -58,7 +67,7 @@ export default function DynamicFormRenderer({ fields, register, control, errors,
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {fields.map((f) => (
-        <div key={f.id} className={['textarea', 'dynamic_list'].includes(f.type) ? 'md:col-span-2' : ''}>
+        <div key={f.id} className={['textarea', 'dynamic_list', 'multi_select'].includes(f.type) ? 'md:col-span-2' : ''}>
           <FieldControl field={f} register={register} control={control} error={errors?.[prefix]?.[f.field_key]} name={`${prefix}.${f.field_key}`} />
         </div>
       ))}
@@ -68,6 +77,7 @@ export default function DynamicFormRenderer({ fields, register, control, errors,
 
 function FieldControl({ field: f, register, control, error, name }) {
   if (f.type === 'dynamic_list') return <ListControl field={f} control={control} register={register} name={name} error={error} />;
+  if (f.type === 'multi_select') return <MultiSelectControl field={f} control={control} name={name} error={error} />;
 
   const id = `cf-${f.field_key}`;
   const cls = `input ${error ? 'input-error' : ''}`;
@@ -96,6 +106,38 @@ function FieldControl({ field: f, register, control, error, name }) {
       {input}
       {error?.message && <p className="error-text">{error.message}</p>}
     </>
+  );
+}
+
+/** Tick every option that applies. Value is an array of the ticked option texts. */
+function MultiSelectControl({ field: f, control, name, error }) {
+  return (
+    <Controller
+      control={control}
+      name={name}
+      defaultValue={[]}
+      render={({ field }) => {
+        const value = Array.isArray(field.value) ? field.value : [];
+        const toggle = (opt) => field.onChange(value.includes(opt) ? value.filter((v) => v !== opt) : [...value, opt]);
+        return (
+          <fieldset>
+            <legend className="label">
+              {f.label}{f.is_required && <span className="text-red-700"> *</span>}
+              <span className="ml-2 text-xs font-normal text-brand-ink/60">tick all that apply</span>
+            </legend>
+            <div className={`grid gap-x-4 gap-y-1 rounded-md border bg-white p-3 sm:grid-cols-2 ${error ? 'border-red-500' : 'border-brand-ink/20'}`}>
+              {(f.options ?? []).map((opt) => (
+                <label key={opt} className="flex min-h-[36px] items-center gap-2 text-sm">
+                  <input type="checkbox" className="h-4 w-4 accent-brand-primary" checked={value.includes(opt)} onChange={() => toggle(opt)} />
+                  {opt}
+                </label>
+              ))}
+            </div>
+            {error?.message && <p className="error-text">{error.message}</p>}
+          </fieldset>
+        );
+      }}
+    />
   );
 }
 

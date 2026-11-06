@@ -3,7 +3,7 @@ import { ArrowDown, ArrowUp, Eye, EyeOff, GripVertical, Pencil, Trash2 } from 'l
 
 const TYPE_LABELS = {
   text: 'Short text', textarea: 'Long text', select: 'Dropdown', date: 'Date',
-  url: 'Link', number: 'Number', dynamic_list: 'Repeatable list',
+    url: 'Link', number: 'Number', dynamic_list: 'Repeatable list', multi_select: 'Multiple choice',
 };
 
 /**

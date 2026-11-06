@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class FormField extends Model
 {
-    public const TYPES = ['text', 'textarea', 'select', 'date', 'url', 'number', 'dynamic_list'];
+        public const TYPES = ['text', 'textarea', 'select', 'multi_select', 'date', 'url', 'number', 'dynamic_list'];
 
     protected $fillable = ['field_key', 'label', 'type', 'is_required', 'is_active', 'options', 'sort_order'];
 

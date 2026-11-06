@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FileText, Inbox, Loader2, LogIn, LogOut, Mail, SlidersHorizontal, Users } from 'lucide-react';
+import { FileText, Inbox, Loader2, LogIn, LogOut, Mail, SlidersHorizontal, Users, ClipboardCheck } from 'lucide-react';
 import { errorMessage } from '../lib/api.js';
 import { useAuth } from '../lib/auth.jsx';
 import { navigate } from '../App.jsx';
@@ -9,12 +9,14 @@ import StaffManager from './StaffManager.jsx';
 import AccountRequests from './AccountRequests.jsx';
 import PublicationsManager from './PublicationsManager.jsx';
 import MailCenter from './MailCenter.jsx';
+import EvidenceFinder from './EvidenceFinder.jsx';
 
 const TABS = [
   { id: 'staff', label: 'Staff', icon: Users, view: StaffManager },
   { id: 'requests', label: 'Account requests', icon: Inbox, view: AccountRequests },
   { id: 'pubs', label: 'Publications', icon: FileText, view: PublicationsManager },
   { id: 'mail', label: 'Send email', icon: Mail, view: MailCenter },
+    { id: 'evidence', label: 'Evidence finder', icon: ClipboardCheck, view: EvidenceFinder },
   { id: 'form', label: 'Form builder', icon: SlidersHorizontal, view: AdminFormManager },
 ];
 
