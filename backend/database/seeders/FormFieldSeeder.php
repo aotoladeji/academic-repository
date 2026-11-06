@@ -15,7 +15,13 @@ class FormFieldSeeder extends Seeder
             ['publication_type', 'Publication type', 'select', true,
                 ['Journal article', 'Conference paper', 'Book chapter', 'Book', 'Thesis']],
             ['keywords', 'Keywords', 'dynamic_list', false, null],
-            ['indexing_database', 'Indexed in', 'select', false, ['Scopus', 'Web of Science', 'PubMed', 'Google Scholar', 'None']],
+            ['indexing_database', 'Indexed in', 'select', false, [
+                'Scopus', 'Web of Science (SCIE / SSCI / AHCI)', 'Web of Science (ESCI)', 'PubMed / MEDLINE',
+                'PubMed Central', 'Embase', 'CINAHL', 'PsycINFO', 'ERIC', 'EconLit', 'IEEE Xplore',
+                'ACM Digital Library', 'arXiv', 'Google Scholar', 'DOAJ', 'AJOL (African Journals Online)',
+                'African Index Medicus', 'Africa-Wide Information', 'SciELO', 'CAB Abstracts', 'AGRIS',
+                'Dimensions', 'Not indexed', 'Other',
+            ]],
         ];
 
         foreach ($fields as $i => [$key, $label, $type, $required, $options]) {
