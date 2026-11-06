@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowLeft, Loader2, Plus, Search, Trash2 } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Loader2, Plus, Search, Trash2 } from 'lucide-react';
 import api, { errorMessage } from '../lib/api.js';
 import PublicationSubmission from '../components/PublicationSubmission.jsx';
+import CollaborationBadge from '../components/CollaborationBadge.jsx';
 import { ErrorBox, OkBox, Pager } from './ui.jsx';
 
 export default function PublicationsManager() {
@@ -60,7 +61,14 @@ function List({ onAdd }) {
             <div className="text-sm">
               <p className="text-base font-semibold leading-snug">{p.title}</p>
               <p className="text-brand-ink/80">{p.staff.name} · PF {p.staff.pf_number} · {p.staff.department} · {p.publication_year}</p>
-              {p.doi && <p className="text-brand-ink/60">DOI {p.doi}</p>}
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                <CollaborationBadge scope={p.collaboration_scope} />
+                {p.publication_link && (
+                  <a className="inline-flex items-center gap-1 font-medium text-brand-700 hover:underline" href={p.publication_link} target="_blank" rel="noreferrer">
+                    View publication <ExternalLink size={12} aria-hidden />
+                  </a>
+                )}
+              </div>
             </div>
             <button className="btn-ghost !text-red-700" onClick={() => remove(p)} aria-label={`Delete ${p.title}`}><Trash2 size={16} /> Delete</button>
           </li>

@@ -5,23 +5,25 @@ namespace App\Http\Controllers;
 use App\Models\FormField;
 use App\Models\Publication;
 use App\Models\Staff;
+use App\Support\Africa;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class PublicationController extends Controller
 {
-    /** PUBLIC: GET /publications  (filters: staff_name, pf_number, department, faculty, keyword, year) */
+    /** PUBLIC: GET /publications */
     public function index(Request $request): JsonResponse
     {
         $f = $request->validate([
-            'staff_name' => ['nullable', 'string', 'max:255'],
-            'pf_number'  => ['nullable', 'string', 'max:50'],
-            'department' => ['nullable', 'string', 'max:255'],
-            'faculty'    => ['nullable', 'string', 'max:255'],
-            'keyword'    => ['nullable', 'string', 'max:255'],
-            'year'       => ['nullable', 'integer', 'min:1900', 'max:2100'],
-            'per_page'   => ['nullable', 'integer', 'min:1', 'max:50'],
+            'staff_name'    => ['nullable', 'string', 'max:255'],
+            'pf_number'     => ['nullable', 'string', 'max:50'],
+            'department'    => ['nullable', 'string', 'max:255'],
+            'faculty'       => ['nullable', 'string', 'max:255'],
+            'keyword'       => ['nullable', 'string', 'max:255'],
+            'year'          => ['nullable', 'integer', 'min:1900', 'max:2100'],
+            'collaboration' => ['nullable', 'in:sole,africa,global,unknown'],
+            'per_page'      => ['nullable', 'integer', 'min:1', 'max:50'],
         ]);
 
         $like = fn (string $v) => '%' . addcslashes($v, '%_\\') . '%';
@@ -29,6 +31,7 @@ class PublicationController extends Controller
         $query = Publication::query()
             ->with('staff:id,pf_number,name,department,faculty,designation')
             ->when($f['year'] ?? null, fn ($q, $v) => $q->where('publication_year', $v))
+            ->when($f['collaboration'] ?? null, fn ($q, $v) => $q->where('collaboration_scope', $v))
             ->when($f['keyword'] ?? null, fn ($q, $v) => $q->where(function ($w) use ($v, $like) {
                 $w->where('title', 'like', $like($v))
                   ->orWhere('abstract', 'like', $like($v))
@@ -60,8 +63,15 @@ class PublicationController extends Controller
     {
         $user = $request->user();
         if ($user instanceof Staff) {
-            $request->merge(['staff_id' => $user->id]); // staff can only submit for themselves
+            $request->merge(['staff_id' => $user->id]);
         }
+
+        // Normalise country codes to upper case before validating
+        $request->merge([
+            'co_authors' => collect($request->input('co_authors', []))
+                ->map(fn ($a) => is_array($a) ? array_merge($a, ['country' => strtoupper((string) ($a['country'] ?? ''))]) : $a)
+                ->all(),
+        ]);
 
         $fields = FormField::active()->ordered()->get();
 
@@ -75,6 +85,7 @@ class PublicationController extends Controller
             'co_authors'               => ['nullable', 'array', 'max:50'],
             'co_authors.*.name'        => ['required', 'string', 'max:255'],
             'co_authors.*.affiliation' => ['nullable', 'string', 'max:255'],
+            'co_authors.*.country'     => ['required', 'regex:/^[A-Z]{2}$/'],
             'co_authors.*.email'       => ['nullable', 'email', 'max:255'],
             'custom'                   => ['nullable', 'array'],
         ], $this->customRules($fields)));
@@ -84,6 +95,8 @@ class PublicationController extends Controller
             ->filter(fn ($v) => $v !== null && $v !== '' && $v !== [])
             ->all();
 
+        $coAuthors = $validated['co_authors'] ?? [];
+
         $publication = Publication::create([
             'staff_id'            => $validated['staff_id'],
             'title'               => $validated['title'],
@@ -92,7 +105,8 @@ class PublicationController extends Controller
             'publication_year'    => date('Y', strtotime($validated['publication_date'])),
             'doi'                 => $validated['doi'] ?? null,
             'url'                 => $validated['url'] ?? null,
-            'co_authors'          => $validated['co_authors'] ?? [],
+            'co_authors'          => $coAuthors,
+            'collaboration_scope' => Africa::collaborationScope($coAuthors),
             'custom_field_values' => $custom,
         ]);
 

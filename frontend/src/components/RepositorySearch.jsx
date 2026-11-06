@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ChevronDown, ChevronLeft, ChevronRight, ExternalLink, Globe2, Loader2, Search, Telescope } from 'lucide-react';
 import api, { errorMessage } from '../lib/api.js';
+import { countryName } from '../lib/countries.js';
+import CollaborationBadge from './CollaborationBadge.jsx';
 import SimilarPublicationsModal from './SimilarPublicationsModal.jsx';
 
-const EMPTY = { staff_name: '', pf_number: '', department: '', faculty: '', keyword: '', year: '' };
+const EMPTY = { staff_name: '', pf_number: '', department: '', faculty: '', keyword: '', year: '', collaboration: '' };
 
 export default function RepositorySearch() {
   const [filters, setFilters] = useState(EMPTY);
@@ -57,6 +59,15 @@ export default function RepositorySearch() {
           {input('year', 'Publication year', { type: 'number', min: 1900, max: 2100, placeholder: 'e.g. 2024' })}
           {input('department', 'Department')}
           {input('faculty', 'Faculty')}
+          <div>
+            <label htmlFor="f-collab" className="label">Collaboration</label>
+            <select id="f-collab" className="input" value={filters.collaboration} onChange={set('collaboration')}>
+              <option value="">All publications</option>
+              <option value="africa">Within Africa</option>
+              <option value="global">Global (outside Africa)</option>
+              <option value="sole">No co-authors</option>
+            </select>
+          </div>
         </div>
         <div className="mt-4 flex gap-2">
           <button className="btn-primary"><Search size={16} /> Search</button>
@@ -89,6 +100,16 @@ export default function RepositorySearch() {
                   <ChevronDown size={18} className={`mt-1 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} aria-hidden />
                 </button>
 
+                {/* Collaboration + link to the publication */}
+                <div className="flex flex-wrap items-center gap-3 border-t border-brand-primary/10 px-4 py-2">
+                  <CollaborationBadge scope={p.collaboration_scope} />
+                  {p.publication_link && (
+                    <a className="inline-flex items-center gap-1 text-sm font-semibold text-brand-700 hover:underline" href={p.publication_link} target="_blank" rel="noreferrer">
+                      View publication <ExternalLink size={13} aria-hidden />
+                    </a>
+                  )}
+                </div>
+
                 <div className="flex flex-wrap items-center gap-2 border-t border-brand-primary/10 px-4 py-2">
                   <span className="text-xs font-medium uppercase tracking-wide text-brand-ink/60">Compare with</span>
                   <button className="btn-ghost !px-2.5 !py-1.5 !text-xs" onClick={() => setSimilarFor({ pub: p, scope: 'africa' })}>
@@ -107,12 +128,27 @@ export default function RepositorySearch() {
                       <Row k="Published" v={p.publication_date} />
                       <Row k="DOI" v={p.doi && <a className="text-brand-700 hover:underline" href={`https://doi.org/${p.doi}`} target="_blank" rel="noreferrer">{p.doi}</a>} />
                       <Row k="Link" v={p.url && <a className="inline-flex items-center gap-1 text-brand-700 hover:underline" href={p.url} target="_blank" rel="noreferrer">Open <ExternalLink size={12} /></a>} />
-                      <Row k="Co-authors" v={p.co_authors?.length ? p.co_authors.map((a) => a.name + (a.affiliation ? ` (${a.affiliation})` : '')).join('; ') : null} />
                       {formFields.map((f) => {
                         const v = p.custom_field_values?.[f.field_key];
                         return <Row key={f.id} k={f.label} v={Array.isArray(v) ? v.join(', ') : v} />;
                       })}
                     </dl>
+
+                    {p.co_authors?.length > 0 && (
+                      <div>
+                        <h3 className="mb-1 text-base font-semibold">Co-authors</h3>
+                        <ul className="space-y-1">
+                          {p.co_authors.map((a, i) => (
+                            <li key={i}>
+                              <strong>{a.name}</strong>
+                              {a.affiliation ? `, ${a.affiliation}` : ''}
+                              {a.country ? <span className="text-brand-ink/70"> ({countryName(a.country)})</span> : null}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
                     {p.abstract && <div><h3 className="mb-1 text-base font-semibold">Abstract</h3><p className="max-w-prose leading-relaxed">{p.abstract}</p></div>}
                   </div>
                 )}

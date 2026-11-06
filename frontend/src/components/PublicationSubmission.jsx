@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useFieldArray, useForm } from 'react-hook-form';
+import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { CheckCircle2, Loader2, Telescope, UserPlus, X } from 'lucide-react';
+import { CheckCircle2, ExternalLink, Loader2, Telescope, UserPlus, X } from 'lucide-react';
 import api, { errorMessage } from '../lib/api.js';
+import { AFRICAN_COUNTRIES, OTHER_COUNTRIES, collaborationScope } from '../lib/countries.js';
+import CollaborationBadge from './CollaborationBadge.jsx';
 import DynamicFormRenderer, { buildCustomDefaults, buildCustomSchema, serializeCustom } from './DynamicFormRenderer.jsx';
 import SimilarPublicationsModal from './SimilarPublicationsModal.jsx';
 
@@ -11,7 +13,7 @@ const CORE_DEFAULTS = { title: '', abstract: '', publication_date: '', doi: '', 
 
 /**
  * Props:
- *  staff     the staff member the publication belongs to (the signed-in user, or the one an admin picked)
+ *  staff     the staff member the publication belongs to (signed-in user, or the one an admin picked)
  *  endpoint  '/publications' (staff) or '/admin/publications' (administrator)
  *  onSaved   optional callback after a successful save
  */
@@ -31,6 +33,7 @@ export default function PublicationSubmission({ staff, endpoint = '/publications
     co_authors: yup.array().of(yup.object({
       name: yup.string().trim().required('Name is required'),
       affiliation: yup.string().notRequired(),
+      country: yup.string().required('Choose the co-author’s country'),
       email: yup.string().email('Enter a valid email').notRequired(),
     })),
     custom: buildCustomSchema(fields),
@@ -41,6 +44,7 @@ export default function PublicationSubmission({ staff, endpoint = '/publications
     defaultValues: { ...CORE_DEFAULTS, custom: {} },
   });
   const { fields: authors, append, remove } = useFieldArray({ control, name: 'co_authors' });
+  const scope = collaborationScope(useWatch({ control, name: 'co_authors' }));
 
   useEffect(() => {
     api.get('/form-fields').then(({ data }) => {
@@ -83,6 +87,14 @@ export default function PublicationSubmission({ staff, endpoint = '/publications
         <CheckCircle2 className="mx-auto text-brand-primary" size={40} aria-hidden />
         <h2 className="mt-3 text-2xl font-semibold">Publication saved</h2>
         <p className="mt-2 text-sm">“{saved.title}” is now in the repository.</p>
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-3">
+          <CollaborationBadge scope={saved.collaboration_scope} />
+          {saved.publication_link && (
+            <a className="inline-flex items-center gap-1 text-sm font-medium text-brand-700 hover:underline" href={saved.publication_link} target="_blank" rel="noreferrer">
+              View publication <ExternalLink size={13} aria-hidden />
+            </a>
+          )}
+        </div>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <button className="btn-primary" onClick={() => setShowSimilar(true)}><Telescope size={16} /> Check for similar publications</button>
           <button className="btn-ghost" onClick={startOver}>Submit another</button>
@@ -139,31 +151,63 @@ export default function PublicationSubmission({ staff, endpoint = '/publications
             {err('url')}
           </div>
         </div>
+        <p className="text-xs text-brand-ink/70">The DOI or link becomes the “View publication” button in the repository, so add at least one.</p>
       </section>
 
       <section className="card p-5" aria-labelledby="co-h">
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h2 id="co-h" className="text-xl font-semibold">Co-authors and contributors</h2>
-          <button type="button" className="btn-ghost" onClick={() => append({ name: '', affiliation: '', email: '' })}>
+          <button type="button" className="btn-ghost" onClick={() => append({ name: '', affiliation: '', country: '', email: '' })}>
             <UserPlus size={16} /> Add co-author
           </button>
         </div>
-        {!authors.length && <p className="text-sm text-brand-ink/70">Sole author. Add co-authors if others contributed.</p>}
+
+        <p className="mb-3 flex flex-wrap items-center gap-2 text-sm" aria-live="polite">
+          This will be recorded as: <CollaborationBadge scope={scope} />
+        </p>
+        {!authors.length && <p className="text-sm text-brand-ink/70">Sole author. Add co-authors if others contributed, and say which country each works in.</p>}
+
         <div className="space-y-3">
-          {authors.map((a, i) => (
-            <div key={a.id} className="grid items-start gap-2 md:grid-cols-[1.2fr_1.2fr_1fr_auto]">
-              <div>
-                <input className={`input ${errors.co_authors?.[i]?.name ? 'input-error' : ''}`} aria-label={`Co-author ${i + 1} name`} placeholder="Full name" {...register(`co_authors.${i}.name`)} />
-                {errors.co_authors?.[i]?.name && <p className="error-text">{errors.co_authors[i].name.message}</p>}
+          {authors.map((a, i) => {
+            const e = errors.co_authors?.[i];
+            return (
+              <div key={a.id} className="rounded-md border border-brand-primary/20 p-3">
+                <div className="mb-2 flex items-center justify-between">
+                  <p className="text-sm font-medium">Co-author {i + 1}</p>
+                  <button type="button" className="icon-btn" onClick={() => remove(i)} aria-label={`Remove co-author ${i + 1}`}><X size={16} /></button>
+                </div>
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div>
+                    <label htmlFor={`ca-name-${i}`} className="label">Full name <span className="text-red-700">*</span></label>
+                    <input id={`ca-name-${i}`} className={`input ${e?.name ? 'input-error' : ''}`} {...register(`co_authors.${i}.name`)} />
+                    {e?.name && <p className="error-text">{e.name.message}</p>}
+                  </div>
+                  <div>
+                    <label htmlFor={`ca-aff-${i}`} className="label">Institution</label>
+                    <input id={`ca-aff-${i}`} className="input" {...register(`co_authors.${i}.affiliation`)} />
+                  </div>
+                  <div>
+                    <label htmlFor={`ca-country-${i}`} className="label">Country of institution <span className="text-red-700">*</span></label>
+                    <select id={`ca-country-${i}`} className={`input ${e?.country ? 'input-error' : ''}`} {...register(`co_authors.${i}.country`)}>
+                      <option value="">Select country…</option>
+                      <optgroup label="Africa">
+                        {AFRICAN_COUNTRIES.map(([code, name]) => <option key={code} value={code}>{name}</option>)}
+                      </optgroup>
+                      <optgroup label="Outside Africa">
+                        {OTHER_COUNTRIES.map(([code, name]) => <option key={code} value={code}>{name}</option>)}
+                      </optgroup>
+                    </select>
+                    {e?.country && <p className="error-text">{e.country.message}</p>}
+                  </div>
+                  <div>
+                    <label htmlFor={`ca-email-${i}`} className="label">Email (optional)</label>
+                    <input id={`ca-email-${i}`} type="email" className={`input ${e?.email ? 'input-error' : ''}`} {...register(`co_authors.${i}.email`)} />
+                    {e?.email && <p className="error-text">{e.email.message}</p>}
+                  </div>
+                </div>
               </div>
-              <input className="input" aria-label={`Co-author ${i + 1} affiliation`} placeholder="Institution" {...register(`co_authors.${i}.affiliation`)} />
-              <div>
-                <input type="email" className={`input ${errors.co_authors?.[i]?.email ? 'input-error' : ''}`} aria-label={`Co-author ${i + 1} email`} placeholder="Email (optional)" {...register(`co_authors.${i}.email`)} />
-                {errors.co_authors?.[i]?.email && <p className="error-text">{errors.co_authors[i].email.message}</p>}
-              </div>
-              <button type="button" className="icon-btn mt-1" onClick={() => remove(i)} aria-label={`Remove co-author ${i + 1}`}><X size={16} /></button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
