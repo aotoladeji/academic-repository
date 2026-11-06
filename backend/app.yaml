@@ -1,0 +1,26 @@
+kind: wasmer.io/App.v0
+name: academic-repository-api
+owner: aot_oladeji
+package: .
+
+env:
+  APP_NAME: "Academic Publication Repository"
+  APP_ENV: production
+  APP_DEBUG: "false"
+  APP_URL: https://academic-repository.wasmer.app
+  APP_LOCALE: en
+  APP_FALLBACK_LOCALE: en
+  LOG_CHANNEL: stderr
+  SESSION_DRIVER: array
+  CACHE_STORE: array
+  QUEUE_CONNECTION: sync
+  BCRYPT_ROUNDS: "12"
+  FRONTEND_URL: https://academic-repository.wasmer.app
+  OPENALEX_MAILTO: mis@ui.edu.ng
+
+capabilities:
+  database:
+    engine: mysql
+
+scaling:
+  mode: single_concurrency

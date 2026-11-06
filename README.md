@@ -115,6 +115,21 @@ cd frontend && VITE_API_URL=https://api.yourdomain.edu/api npm run build   # ser
 ```
 Before going live: replace the sample `StaffSeeder` with a real import, add a role/gate check to the `admin` route group in `routes/api.php`, serve everything over HTTPS, and run `php artisan schedule`/queue workers only if you add them later (none are required today).
 
+## Deploy to Wasmer Edge (via GitHub)
+
+Each app has its own `wasmer.toml` + `app.yaml`:
+- [backend/wasmer.toml](backend/wasmer.toml) / [backend/app.yaml](backend/app.yaml) — PHP runtime, runs `public/index.php` on `:8080`, auto-provisions a managed MySQL database (`capabilities.database`).
+- [frontend/wasmer.toml](frontend/wasmer.toml) / [frontend/app.yaml](frontend/app.yaml) / `frontend/Staticfile` — serves the Vite `dist/` build as a static site.
+
+One-time setup:
+1. In both `backend/wasmer.toml`/`app.yaml` and `frontend/wasmer.toml`/`app.yaml`, replace `YOUR_WASMER_USERNAME` with your actual Wasmer namespace/username.
+2. `wasmer login`, then `wasmer app secrets create APP_KEY "$(php -r 'echo "base64:".base64_encode(random_bytes(32));')" --app-dir backend` (one-time; not stored in the repo).
+3. In the GitHub repo settings:
+   - **Secrets** → add `WASMER_TOKEN` (from `wasmer login` / the Wasmer dashboard → Account → Access Tokens).
+   - **Variables** → add `VITE_API_URL` = `https://academic-repository-api-YOUR_WASMER_USERNAME.wasmer.app/api`.
+4. Push to `main` — [.github/workflows/wasmer-deploy-backend.yml](.github/workflows/wasmer-deploy-backend.yml) and [.github/workflows/wasmer-deploy-frontend.yml](.github/workflows/wasmer-deploy-frontend.yml) build and `wasmer deploy --non-interactive` each app automatically (path-filtered, so each only redeploys when its folder changes).
+5. After the first backend deploy, run migrations against the provisioned database: `wasmer app database list --with-password --app-dir backend` to get `DB_HOST/DB_PORT/DB_NAME/DB_USERNAME/DB_PASSWORD`, export them locally, then `php artisan migrate --seed --force`.
+
 ## Troubleshooting
 | Symptom | Fix |
 |---|---|

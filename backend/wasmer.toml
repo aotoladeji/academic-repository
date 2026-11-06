@@ -1,0 +1,17 @@
+[package]
+name = "aot_oladeji/academic-repository-api"
+version = "0.1.0"
+description = "Academic Publication Repository - Laravel API"
+
+[dependencies]
+"php/php" = "=8.3.4"
+
+[fs]
+"/app/" = "."
+
+[[command]]
+name = "run"
+module = "php/php:php"
+runner = "wasi"
+[command.annotations.wasi]
+main-args = ["-t", "/app/public", "-S", "localhost:8080"]

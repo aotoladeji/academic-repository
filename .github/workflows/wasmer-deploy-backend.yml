@@ -1,0 +1,35 @@
+name: Deploy backend to Wasmer
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - ".github/workflows/wasmer-deploy-backend.yml"
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+
+      - name: Install Composer dependencies
+        working-directory: backend
+        run: composer install --no-dev --optimize-autoloader --no-interaction
+
+      - name: Install Wasmer CLI
+        run: curl https://get.wasmer.io -sSfL | sh
+
+      - name: Deploy to Wasmer Edge
+        working-directory: backend
+        env:
+          WASMER_TOKEN: ${{ secrets.WASMER_TOKEN }}
+        run: |
+          export PATH="$HOME/.wasmer/bin:$PATH"
+          wasmer deploy --non-interactive
