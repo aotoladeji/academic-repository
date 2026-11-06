@@ -1,5 +1,5 @@
 [package]
-name = "YOUR_WASMER_USERNAME/academic-repository"
+name = "aot_oladeji/academic-repository"
 version = "0.1.0"
 description = "Academic Publication Repository (Laravel API + React SPA, single app)"
 

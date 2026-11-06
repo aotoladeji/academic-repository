@@ -1,14 +1,14 @@
 kind: wasmer.io/App.v0
 name: academic-repository
-owner: YOUR_WASMER_USERNAME
+owner: aot_oladeji
 package: .
 
 env:
   APP_NAME: "Academic Publication Repository"
   APP_ENV: production
   APP_DEBUG: "false"
-  APP_URL: https://academic-repository-YOUR_WASMER_USERNAME.wasmer.app
-  FRONTEND_URL: https://academic-repository-YOUR_WASMER_USERNAME.wasmer.app
+  APP_URL: https://academic-repository-aot_oladeji.wasmer.app
+  FRONTEND_URL: https://academic-repository-aot_oladeji.wasmer.app
   APP_LOCALE: en
   APP_FALLBACK_LOCALE: en
   LOG_CHANNEL: stderr
