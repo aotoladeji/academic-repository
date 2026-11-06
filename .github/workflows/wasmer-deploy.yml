@@ -42,4 +42,4 @@ jobs:
           WASMER_TOKEN: ${{ secrets.WASMER_TOKEN }}
         run: |
           export PATH="$HOME/.wasmer/bin:$PATH"
-          wasmer deploy --non-interactive
+          wasmer deploy --non-interactive --bump
