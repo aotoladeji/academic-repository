@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { -webkit-text-size-adjust: 100%; }
+  body { @apply overflow-x-hidden bg-brand-light font-sans text-brand-ink antialiased; }
+  h1, h2, h3 { @apply font-display; }
+  img { @apply max-w-full; }
+  :focus-visible { @apply outline-2 outline-offset-2 outline-brand-primary; }
+}
+
+@layer components {
+  .card      { @apply rounded-lg border border-brand-primary/20 bg-white shadow-sm; }
+  .label     { @apply mb-1 block text-sm font-medium; }
+
+  /* 16px text on phones stops iPhones zooming in when a field is tapped */
+  .input     { @apply w-full rounded-md border border-brand-ink/20 bg-white px-3 py-2.5 text-base placeholder:text-brand-ink/40 focus:border-brand-primary focus:ring-1 focus:ring-brand-primary disabled:bg-brand-light/60 disabled:text-brand-ink/70 sm:py-2 sm:text-sm; }
+  .input-error { @apply border-red-500; }
+  .error-text  { @apply mt-1 text-xs text-red-700; }
+
+  /* 44px minimum tap height on phones */
+  .btn-primary { @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-md bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 active:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-0; }
+  .btn-ghost   { @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-md border border-brand-primary/40 bg-white px-3 py-2 text-sm font-medium text-brand-700 hover:bg-brand-light disabled:opacity-50 sm:min-h-0; }
+  .icon-btn    { @apply inline-flex items-center justify-center rounded p-2.5 text-brand-ink/60 hover:bg-brand-light hover:text-brand-700 disabled:opacity-30 sm:p-1.5; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
