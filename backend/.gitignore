@@ -3,6 +3,10 @@
 /public/build
 /public/hot
 /public/storage
+# Frontend build output (see frontend/vite.config.js) - generated at deploy time
+/public/index.html
+/public/assets
+/public/logo.png
 /storage/*.key
 /vendor
 .env

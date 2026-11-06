@@ -7,6 +7,8 @@ Laravel 11 REST API + React (Vite) + Tailwind + MySQL 8. Staff submit publicatio
 ```
 academic-repository/
 ├── README.md                      ← this guide
+├── wasmer.toml / app.yaml         ← single Wasmer Edge deployment (see "Deploy to Wasmer Edge")
+├── .github/workflows/wasmer-deploy.yml
 ├── scripts/
 │   ├── setup-backend.sh           ← scaffolds Laravel around our files, installs Sanctum, merges .env
 │   └── setup-frontend.sh          ← installs npm deps, creates .env
@@ -117,18 +119,20 @@ Before going live: replace the sample `StaffSeeder` with a real import, add a ro
 
 ## Deploy to Wasmer Edge (via GitHub)
 
-Each app has its own `wasmer.toml` + `app.yaml`:
-- [backend/wasmer.toml](backend/wasmer.toml) / [backend/app.yaml](backend/app.yaml) — PHP runtime, runs `public/index.php` on `:8080`, auto-provisions a managed MySQL database (`capabilities.database`).
-- [frontend/wasmer.toml](frontend/wasmer.toml) / [frontend/app.yaml](frontend/app.yaml) / `frontend/Staticfile` — serves the Vite `dist/` build as a static site.
+This deploys as **one** Wasmer app: the frontend (`frontend/vite.config.js`) builds straight into `backend/public/`, and Laravel serves both the `/api/*` routes and the built SPA (catch-all in `backend/routes/web.php`). That keeps `wasmer.toml` + `app.yaml` at the repo root, so Wasmer's own auto-detect/import works with zero extra settings — no "root directory" picker needed.
 
 One-time setup:
-1. In both `backend/wasmer.toml`/`app.yaml` and `frontend/wasmer.toml`/`app.yaml`, replace `YOUR_WASMER_USERNAME` with your actual Wasmer namespace/username.
-2. `wasmer login`, then `wasmer app secrets create APP_KEY "$(php -r 'echo "base64:".base64_encode(random_bytes(32));')" --app-dir backend` (one-time; not stored in the repo).
-3. In the GitHub repo settings:
-   - **Secrets** → add `WASMER_TOKEN` (from `wasmer login` / the Wasmer dashboard → Account → Access Tokens).
-   - **Variables** → add `VITE_API_URL` = `https://academic-repository-api-YOUR_WASMER_USERNAME.wasmer.app/api`.
-4. Push to `main` — [.github/workflows/wasmer-deploy-backend.yml](.github/workflows/wasmer-deploy-backend.yml) and [.github/workflows/wasmer-deploy-frontend.yml](.github/workflows/wasmer-deploy-frontend.yml) build and `wasmer deploy --non-interactive` each app automatically (path-filtered, so each only redeploys when its folder changes).
-5. After the first backend deploy, run migrations against the provisioned database: `wasmer app database list --with-password --app-dir backend` to get `DB_HOST/DB_PORT/DB_NAME/DB_USERNAME/DB_PASSWORD`, export them locally, then `php artisan migrate --seed --force`.
+1. In [wasmer.toml](wasmer.toml) and [app.yaml](app.yaml) (repo root), replace every `YOUR_WASMER_USERNAME` with your actual Wasmer namespace/username.
+2. `wasmer login`, then create the app once so the database gets provisioned and you can attach the `APP_KEY` secret:
+   ```bash
+   wasmer deploy --non-interactive
+   wasmer app secrets create APP_KEY "$(php -r 'echo "base64:".base64_encode(random_bytes(32));')"
+   ```
+3. In the GitHub repo settings → **Secrets and variables → Actions → Secrets**, add `WASMER_TOKEN` (from the Wasmer dashboard → Account → Access Tokens, or `cat ~/.wasmer/wasmer.toml` after `wasmer login`).
+4. Push to `main` — [.github/workflows/wasmer-deploy.yml](.github/workflows/wasmer-deploy.yml) builds the frontend into `backend/public/`, installs Composer dependencies, and runs `wasmer deploy --non-interactive` for the single combined app.
+5. After the first deploy, run migrations against the provisioned database: `wasmer app database list --with-password` to get `DB_HOST/DB_PORT/DB_NAME/DB_USERNAME/DB_PASSWORD`, export them locally, then `php artisan migrate --seed --force` from `backend/`.
+
+Since the API and the SPA are served from the same origin in production, there's no CORS to configure there — `FRONTEND_URL`/CORS only matter for local dev (frontend on `:5173`, backend on `:8001`).
 
 ## Troubleshooting
 | Symptom | Fix |

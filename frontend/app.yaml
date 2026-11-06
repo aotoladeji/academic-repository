@@ -1,8 +1,0 @@
-kind: wasmer.io/App.v0
-name: academic-repository
-owner: aot_oladeji
-package: .
-
-capabilities:
-  cdn_cache:
-    enabled: true

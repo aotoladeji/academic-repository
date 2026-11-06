@@ -1,13 +1,14 @@
 kind: wasmer.io/App.v0
-name: academic-repository-api
-owner: aot_oladeji
+name: academic-repository
+owner: YOUR_WASMER_USERNAME
 package: .
 
 env:
   APP_NAME: "Academic Publication Repository"
   APP_ENV: production
   APP_DEBUG: "false"
-  APP_URL: https://academic-repository.wasmer.app
+  APP_URL: https://academic-repository-YOUR_WASMER_USERNAME.wasmer.app
+  FRONTEND_URL: https://academic-repository-YOUR_WASMER_USERNAME.wasmer.app
   APP_LOCALE: en
   APP_FALLBACK_LOCALE: en
   LOG_CHANNEL: stderr
@@ -15,8 +16,7 @@ env:
   CACHE_STORE: array
   QUEUE_CONNECTION: sync
   BCRYPT_ROUNDS: "12"
-  FRONTEND_URL: https://academic-repository.wasmer.app
-  OPENALEX_MAILTO: mis@ui.edu.ng
+  OPENALEX_MAILTO: you@university.edu
 
 capabilities:
   database:

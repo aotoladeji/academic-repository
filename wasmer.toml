@@ -1,13 +1,13 @@
 [package]
-name = "aot_oladeji/academic-repository-api"
+name = "YOUR_WASMER_USERNAME/academic-repository"
 version = "0.1.0"
-description = "Academic Publication Repository - Laravel API"
+description = "Academic Publication Repository (Laravel API + React SPA, single app)"
 
 [dependencies]
 "php/php" = "=8.3.4"
 
 [fs]
-"/app/" = "."
+"/app/" = "backend"
 
 [[command]]
 name = "run"
