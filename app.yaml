@@ -12,6 +12,7 @@ env:
   APP_LOCALE: en
   APP_FALLBACK_LOCALE: en
   LOG_CHANNEL: stderr
+  DB_CONNECTION: mysql
   SESSION_DRIVER: array
   CACHE_STORE: array
   QUEUE_CONNECTION: sync
