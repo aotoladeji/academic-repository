@@ -16,6 +16,10 @@ class EvidenceController extends Controller
     public function index(Request $request): JsonResponse
     {
         $f = $request->validate([
+            'staff'        => ['nullable', 'string', 'max:255'],   // author name or PF number
+            'department'   => ['nullable', 'string', 'max:255'],
+            'faculty'      => ['nullable', 'string', 'max:255'],
+            'keyword'      => ['nullable', 'string', 'max:255'],   // title or abstract
             'partner'      => ['nullable', 'in:other_african,outside_home,any'],
             'home_country' => ['nullable', 'alpha', 'size:2'],
             'indexed_in'   => ['nullable', 'array'],
@@ -32,11 +36,23 @@ class EvidenceController extends Controller
         $journalKey = config('repository.journal_field_key', 'journal_name');
         $withLink   = $request->boolean('with_link', true);
 
+        $like = fn (string $v) => '%' . addcslashes($v, '%_\\') . '%';
+
         $rows = Publication::query()
             ->with('staff:id,pf_number,name,department,faculty')
             ->whereNotNull('co_authors')
             ->when($f['year_from'] ?? null, fn ($q, $v) => $q->where('publication_year', '>=', $v))
             ->when($f['year_to'] ?? null, fn ($q, $v) => $q->where('publication_year', '<=', $v))
+            ->when($f['keyword'] ?? null, fn ($q, $v) => $q->where(
+                fn ($w) => $w->where('title', 'like', $like($v))->orWhere('abstract', 'like', $like($v))
+            ))
+            ->whereHas('staff', function ($q) use ($f, $like) {
+                $q->when($f['staff'] ?? null, fn ($s, $v) => $s->where(
+                      fn ($w) => $w->where('name', 'like', $like($v))->orWhere('pf_number', 'like', $like($v))
+                  ))
+                  ->when($f['department'] ?? null, fn ($s, $v) => $s->where('department', 'like', $like($v)))
+                  ->when($f['faculty'] ?? null, fn ($s, $v) => $s->where('faculty', 'like', $like($v)));
+            })
             ->orderByDesc('publication_date')
             ->limit(2000)
             ->get();
